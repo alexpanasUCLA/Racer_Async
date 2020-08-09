@@ -353,7 +353,7 @@ function renderAt(element, html) {
 
 
 // API CALLS ------------------------------------------------
-
+ 
 const SERVER = 'http://localhost:8000'
 
 function defaultFetchOpts() {
@@ -366,82 +366,56 @@ function defaultFetchOpts() {
 	}
 }
 
-// TODO - Make a fetch call (with error handling!) to each of the following API endpoints 
-const handleError = (route) => (err) => console.error(`Route ${route} request failed:`, err);
-
-const request = (route,init={}) => {
-    return fetch(`${SERVER}/api/${route}`, {
-        ...defaultFetchOpts(),
-        ...init,
-    }).then((res) => res.json().catch(()=>{})).then((data) => {
-     
-        return data;
-    }).catch(handleError(route));
-};
-
-
-/*
- * [GET] api/tracks List of all tracks
- *
- * id: number (1)
- * name: string ("Track 1")
- * segments: number
- */
 function getTracks() {
-    return request('tracks');
+	return fetch(`${SERVER}/api/tracks`, defaultFetchOpts())		
+		.then(res => res.json())
+		.catch(err => console.log(`Problem with getTracks::${err}`))
 }
 
-/*
- * [GET] api/cars List of all cars
- *
- * id: number (3)
- * driver_name: string ("Racer 1")
- * top_speed: number (500)
- * acceleration: number (10)
- * handling: number (10)
- */
 function getRacers() {
-    return request('cars');
+	return fetch(`${SERVER}/api/cars`, defaultFetchOpts())
+		.then(res => res.json())
+		.catch(err => console.log(`Problem with getRacers::${err}`))
 }
 
-/*
- * [POST] api/races Create a race
- * id: number
- * track: string
- * player_id: number
- * cars: Cars[] (array of cars in the race)
- * results: Cars[] (array of cars in the position they finished, available if the race is finished)
- */
 function createRace(player_id, track_id) {
-    player_id = parseInt(player_id);
-    track_id = parseInt(track_id);
-    const body = { player_id, track_id };
-
-    return request('races', {
-        method: "POST",
-        dataType: "jsonp",
-        body: JSON.stringify(body),
-    });
+	player_id = parseInt(player_id)
+	track_id = parseInt(track_id)
+	const body = { player_id, track_id }
+	
+	return fetch(`${SERVER}/api/races`, {
+		method: 'POST',
+		...defaultFetchOpts(),
+		dataType: 'jsonp',
+		body: JSON.stringify(body)
+	})
+	.then(res => res.json())
+	.catch(err => console.log("Problem with createRace request::", err))
 }
 
-/*
- * status: RaceStatus ("unstarted" | "in-progress" | "finished")
- * positions object[] ([{ car: object, final_position: number (omitted if empty), speed: number, segment: number}])
- */
-function getRace(id) {
-    return request(`races/${id}`);
+async function getRace(id) {
+	try {
+		return await (await fetch(`${SERVER}/api/races/${id}`, defaultFetchOpts())).json();
+	} catch (e) {
+		throw new Error(`Problem with getRace::${e}`);
+	}
 }
 
-function startRace(id) {
-    return request(`races/${id}/start`, {
-        method: "POST",
-    });
+async function startRace(id) {
+	return await fetch(`${SERVER}/api/races/${id}/start`, {
+		method: 'POST',
+		...defaultFetchOpts(),
+	})
+	.catch(err => console.log("Problem with getRace request::", err))
 }
 
-function accelerate(id) {
-    return request(`races/${id}/accelerate`, {
-        method: "POST",
-    });
+async function accelerate(id) {
+	try {
+		return await fetch(`${SERVER}/api/races/${id}/accelerate`, {
+			method: 'POST',
+			...defaultFetchOpts(),
+		});
+	} catch (e) {
+		throw new Error(`Problem with getRace::${e}`);
+	}
 }
-
-
